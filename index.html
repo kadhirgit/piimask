@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PII Masking</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        .banner {
+            background-color: purple;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bolder;
+            margin-bottom: 40px;
+            border-radius: 8px;
+        }        
+        .container {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+        .text-area-container {
+            display: inline-block;
+            position: relative;
+            margin-bottom: 20px;
+            flex-basis: 48%;
+            vertical-align: top;
+        }
+        .text-area {
+            width: 100%;
+            height: 600px;
+            box-sizing: border-box;
+            padding: 20px;
+            font-size: 14px;
+            resize: none;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+        #editable-div {
+            width: 100%;
+            height: 600px;
+            box-sizing: border-box;
+            padding: 20px;
+            font-size: 14px;
+            resize: none;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+        .btext-area {
+            width: 100%;
+            height: 100px;
+            box-sizing: border-box;
+            padding: 10px;
+            resize: none;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+        .legend-box {
+            position: absolute;
+            top: -20px;
+            left: 10px;
+            background-color: #ccc;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 8px;
+        }
+        .choose-pii-legend {
+            border-radius: 8px;
+            padding: 4px ;
+            background-color: #ccc;
+            margin-bottom: 2px;
+            padding: 5px 10px;
+        }
+        .button-container {
+            text-align: center;
+            margin-top: 10px;
+        }
+        .maskingStatsChartContainer  {
+            width: 100%; 
+            max-width: 600px;
+            margin: 0 auto;
+
+        }
+        .checkbox-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+
+        }
+        .checkbox-container label {
+            margin-bottom: 10px;
+        }
+        .pii-text-areas {
+            display: none;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+        .pii-text-areas textarea {
+            background-color: rgba(0, 0, 0, 0.023);
+        }
+        .customize-options {
+            display: none;
+            margin-top: 5px;
+        }
+        .custom-checkboxes {
+            display: flex;
+            flex-wrap: wrap;
+        }
+        .custom-checkboxes label {
+            margin-right: 15px;
+        }
+        .custom-checkboxes label:last-child {
+            margin-right: 0;
+        }
+        .radio-container label {
+            margin-right: 20px;
+        }
+        .masked-email {
+            background-color: #007bff;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 10px;
+        }
+
+        fieldset {
+            border-radius: 10px;
+            border: 2px solid #ccc;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .radio-fieldset{
+            border-radius: 10px;
+            border: 1px solid black;
+            padding: 10px;
+            margin-bottom: 10px;
+            width: fit-content;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 10px;
+            background-color: #f5f5f5;
+            color: #888;
+            font-size: 14px;
+            border-radius: 8px;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="banner">Hyper PII Masking</div>
+
+    <div class="container">
+        <div class="text-area-container">
+            <div class="legend-box">Sample Input</div>
+            <textarea id="inputText" class="text-area" placeholder="Enter your text here"></textarea>
+        </div>
+
+        <div class="text-area-container">
+            <div class="legend-box">Masked Output</div>
+            <textarea id="maskedText" class="text-area" readonly></textarea>
+            <!-- <div id="maskedText" class="editable-div" contenteditable="false"></div>  -->
+        </div>
+    </div>
+
+    <fieldset>
+        <legend class="choose-pii-legend">PII Types</legend>
+        <fieldset class="radio-fieldset">
+        <div class="radio-container">
+            <label>
+                <input type="radio" name="maskOption" value="full" checked> Full
+            </label>
+            <label>
+                <input type="radio" name="maskOption" value="lite"> Lite
+            </label>
+            <label>
+                <input type="radio" name="maskOption" value="customize"> Customize
+            </label>
+            <label>
+                <input type="radio" name="maskOption" value="visualize"> Visualize
+            </label>
+        </div>
+        </fieldset>
+        <div class="checkbox-container" id="blackWhiteListContainer">
+            <!-- Black-White List Checkbox -->
+            <label>
+                <input type="checkbox" id="blackWhiteListCheckbox"> Black-White List
+            </label>
+        </div>
+
+        <!-- Blacklist and Whitelist Text Areas (Initially Hidden) -->
+        <div class="pii-text-areas" id="piiTextAreas">
+            <div class="text-area-container">
+                <div class="legend-box">Blacklist</div>
+                <textarea id="blacklistText" class="btext-area" placeholder="Enter PII to blacklist"></textarea>
+            </div>
+            <div class="text-area-container">
+                <div class="legend-box">Whitelist</div>
+                <textarea id="whitelistText" class="btext-area" placeholder="Enter PII to whitelist"></textarea>
+            </div>
+        </div>
+
+        <div class="customize-options" id="customizeOptions">
+            <div class="custom-checkboxes">
+                <label>
+                    <input type="checkbox" name="mask" value="phone" checked> Mask Phone Numbers
+                </label>
+                <label>
+                    <input type="checkbox" name="mask" value="email"> Mask Email Address
+                </label>
+                <label>
+                    <input type="checkbox" name="mask" value="urls"> Mask URLs
+                </label>
+                <label>
+                    <input type="checkbox" name="mask" value="number"> Mask Numbers
+                </label>
+            </div>
+        </div>
+    </fieldset>
+
+<!-- 
+    <div id="maskingStatsChartContainer" class="maskingStatsChartContainer">
+        <canvas id="maskingStatsChart"></canvas>
+    </div> -->
+    <div class="button-container">
+        <button onclick="performNER()">Submit</button>
+    </div>
+
+
+
+    <footer style="text-align: center; margin-top: 20px;">
+        &copy; 2023 by Team ATOM. All rights reserved.
+    </footer>
+
+    <script>
+    
+
+        // Function to perform NER
+        function performNER() {
+            const inputText = document.getElementById('inputText').value;
+            const blackText = document.getElementById('blacklistText').value;
+            let maskedText = inputText;
+            const emailPattern = /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g;
+            //const phonePattern = /(\b\d{3}[-.\s]?\d{3}[-.\s]?\d{4}\b)/g;
+            const phonePattern = /(\+?\d{1,2}[-.\s]?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4})/g;
+            const numberPattern = /\b\d+\b/g;
+            const urlPattern = /((?:https?:\/\/|www\.)[^\s]+)/gi;
+
+            // Get the selected options for PII masking
+            const maskOption = document.querySelector('input[name="maskOption"]:checked').value;
+            if (maskOption === "customize") {
+            const selectedOptions = Array.from(document.querySelectorAll('#customizeOptions input[name="mask"]:checked')).map(option => option.value);
+            if (selectedOptions.includes("phone")) {
+                maskedText = maskedText.replace(phonePattern, function(match) {
+                  
+                    return "*PHONE*";
+                });
+            }
+            if (selectedOptions.includes("email")) {
+                maskedText = maskedText.replace(emailPattern, function(match) {
+             
+                    return "*EMAIL*";
+                });
+            }
+            if (selectedOptions.includes("urls")) {
+                maskedText = maskedText.replace(urlPattern, function(match) {
+                   
+                    return "*URL*";
+                });
+            }
+            if (selectedOptions.includes("number")) {
+                maskedText = maskedText.replace(numberPattern, function(match) {
+                   
+                    return "*NUMBER*";
+                });
+            }
+            const maskedTextArea = document.getElementById("maskedText");
+            maskedTextArea.value = maskedText;
+        } else if (maskOption === "lite") {
+            maskedText = maskedText.replace(phonePattern, function(match) {
+               
+                return "*PHONE*";
+            });
+            maskedText = maskedText.replace(emailPattern, function(match) {
+               
+                return "*EMAIL*";
+            });
+            maskedText = maskedText.replace(urlPattern, function(match) {
+               
+               return "*URL*";
+           });
+            maskedText = maskedText.replace(numberPattern, function(match) {
+               
+                return "*NUMBER*";
+            });
+            const maskedTextArea = document.getElementById("maskedText");
+            maskedTextArea.value = maskedText;
+        } else if (maskOption === "visualize") {
+           // For visualization, no masking is applied
+        } else if (maskOption === "full") {
+            
+            // Send a POST request to the FastAPI backend
+            fetch('http://127.0.0.1:8000/ner/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ 'text': inputText, 'blacklist': blackText})
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Display the masked output in the textarea
+                const resultTextarea = document.getElementById('maskedText');
+                resultTextarea.value = data.text;
+            })
+            .catch(error => console.error('Error:', error));
+        } 
+     } 
+    //  if (maskOption === "lite"){
+    //     // Update the second text area with the masked text
+    //     const maskedTextArea = document.getElementById("maskedText");
+    //     maskedTextArea.value = maskedText;
+    //  }
+        // // Function to show/hide Customize Options based on radio button selection
+        // const maskOptionRadios = document.querySelectorAll('input[name="maskOption"]');
+        // const customizeOptions = document.getElementById('customizeOptions');
+        // const checkOptions = document.getElementById('blackWhiteListCheckbox');
+        // maskOptionRadios.forEach(radio => {
+        //     radio.addEventListener('change', function() {
+        //         if (this.value === "customize") {
+        //             customizeOptions.style.display = "block";
+        //         } else {
+        //             customizeOptions.style.display = "none";
+        //             piiTextAreas.style.display = blackWhiteListCheckbox.checked ? "flex" : "none";
+        //         }
+    
+        //     });
+        // });
+
+        // // Function to show/hide Blacklist and Whitelist Text Areas based on checkbox selection
+        // const blackWhiteListCheckbox = document.getElementById('blackWhiteListCheckbox');
+        // const piiTextAreas = document.getElementById('piiTextAreas');
+   
+       
+        // blackWhiteListCheckbox.addEventListener('change', function() {
+        //     if (this.checked) {
+        //         piiTextAreas.style.display = "flex";
+        //     } else {
+        //         piiTextAreas.style.display = "none";
+        //     }
+        // });
+
+    function updateVisibility() {
+        const maskOptionRadios = document.querySelectorAll('input[name="maskOption"]');
+        const selectedOption = document.querySelector('input[name="maskOption"]:checked').value;
+
+        const blackWhiteListCheckbox = document.getElementById('blackWhiteListCheckbox');
+        const piiTextAreas = document.getElementById('piiTextAreas');
+        const customizeOptions = document.getElementById('customizeOptions');
+        const blackWhiteListContainer = document.getElementById('blackWhiteListContainer');
+
+        if (selectedOption === "full") {
+            blackWhiteListContainer.style.display = "block";
+            piiTextAreas.style.display = blackWhiteListCheckbox.checked ? "flex" : "none";
+            customizeOptions.style.display = "none";
+        } else if (selectedOption === "customize") {
+            blackWhiteListContainer.style.display = "none";
+            piiTextAreas.style.display = "none";
+            customizeOptions.style.display = "block";
+        } else {
+            blackWhiteListContainer.style.display = "none";
+            piiTextAreas.style.display = "none";
+            customizeOptions.style.display = "none";
+        }
+    }
+
+    // Add event listeners to radio buttons and checkbox to update visibility
+    const maskOptionRadios = document.querySelectorAll('input[name="maskOption"]');
+    maskOptionRadios.forEach(radio => {
+        radio.onchange = updateVisibility;
+    });
+
+    const blackWhiteListCheckbox = document.getElementById('blackWhiteListCheckbox');
+    blackWhiteListCheckbox.onchange = updateVisibility;
+
+    // Call the function to initialize the visibility based on the initial radio button selection
+    updateVisibility();
+     
+    </script>
+</body>
+</html>
